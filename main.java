@@ -1,11 +1,14 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class main {
 
     private static HashMap<String, Integer> supportTable = new HashMap<String, Integer>();
+    private static List<String> transactions = new ArrayList<String>();
 
     public static void readFile(String filename) {
         try {
@@ -20,6 +23,7 @@ public class main {
                     for (var val : lineItems[2].split("\\s+")) {
                         supportTable.put(val, supportTable.getOrDefault(val, 0) + 1);
                     }
+                    transactions.add(lineItems[2]);
                 }
             }
             scanr.close();
@@ -30,5 +34,6 @@ public class main {
 
     public static void main(String[] args) {
         readFile(args[0]);
+        System.out.print(transactions);
     }
 }
