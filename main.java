@@ -91,6 +91,9 @@ public class main {
 
         System.out.println(supportTable);
         System.out.println(orderedTransactions);
+        fpgrowth fp = new fpgrowth(supportTable, orderedTransactions);
+        fp.createFpTree();
+        // fp.viewTree();
         // orderTransactions();
     }
 }
