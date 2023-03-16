@@ -1,10 +1,10 @@
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map.Entry;
 
 public class fpgrowth {
     private HashMap<String, Integer> supportTable;
@@ -27,40 +27,23 @@ public class fpgrowth {
         for (List<String> list : transactions) {
             insertToTree(root, list);
         }
-        System.out.println("head t");
-        System.out.println(headerTable);
         return root;
     }
 
-    public void viewFrequenPatterns() {
-        for (String key : this.headerTable.keySet()) {
-            Integer tempSupport = this.supportTable.get(key);
-
-            if (tempSupport >= this.support) {
-                List<String> itemset = new ArrayList<String>();
-                itemset.add(key);
-
-                Node conditional = this.headerTable.get(key).getNexNode();
-                while (conditional != null) {
-                    List<String> conditionalItems = new ArrayList<String>();
-                    Node current = conditional;
-                    Integer conditionalSupport = current.getSupport();
-                    Set<Node> visited = new HashSet<Node>();
-                    while (current.getParent().getValue() != null) {
-                        if (!visited.contains(current)) {
-                            visited.add(current);
-                            conditionalItems.add(current.getValue());
-                        }
-                        current = current.getParent();
-                    }
-                    if (!conditionalItems.isEmpty()) {
-                        Collections.reverse(conditionalItems);
-                        conditionalItems.addAll(itemset);
-                        System.out.println(conditionalItems.toString() + " : " + conditionalSupport);
-                    }
-                    conditional = conditional.getNexNode();
+    public void viewFrequentPatterns() {
+        for (Entry<String, Node> entry : headerTable.entrySet()) {
+            String item = entry.getKey();
+            Node node = entry.getValue();
+            List<String> itemset = new ArrayList<String>();
+            while (node != null) {
+                if (node.getParent() != null && node.getParent().getValue() != null) {
+                    itemset.add(node.getParent().getValue());
                 }
-                System.out.println(itemset.toString() + " : " + tempSupport);
+                node = node.getNexNode();
+            }
+            if (!itemset.isEmpty()) {
+                System.out.println("[" + item + "] : " + supportTable.get(item));
+                System.out.println(itemset);
             }
         }
     }
@@ -79,13 +62,12 @@ public class fpgrowth {
             tempNode.setParent(node);
             node.getChildren().put(head, tempNode);
             // Add to header table
-            if (headerTable.get(head) == null) {
-                headerTable.put(head, tempNode);
+            if (this.headerTable.get(head) == null) {
+                this.headerTable.put(head, tempNode);
             } else {
-                System.out.println("Adding node " + tempNode.getValue() + " to end of list");
-                Node next = headerTable.get(head);
+                Node next = this.headerTable.get(head);
                 while (next.getNexNode() != null) { // Find the last node
-                    System.out.print(next.getValue());
+                    System.out.println(next.getValue());
                     next = next.getNexNode();
                 }
                 next.setNextNode(tempNode);
