@@ -101,9 +101,19 @@ public class main {
             System.out.println("Make sure to enter a number as the second parameter!");
         }
         // Create fpTree
+        final long start = System.currentTimeMillis();
         fpgrowth fp = new fpgrowth(supportTable, orderedTransactions, support);
         fp.createFpTree();
         // Print patterns
-        fp.viewFrequentPatterns();
+        fp.createFrequentPatterns();
+        fp.writeToFile();
+        final long end = System.currentTimeMillis();
+        final long runtime = end - start;
+
+        if (runtime > 999) {
+            System.out.println("Total execution time: " + (runtime / 1000) + "s.");
+        } else {
+            System.out.println("Total execution time: " + runtime + "ms.");
+        }
     }
 }
