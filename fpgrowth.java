@@ -1,36 +1,30 @@
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 public class fpgrowth {
     private static HashMap<String, Integer> supportTable;
     private static List<List<String>> transactions;
     private static Node tree;
+    private static HashMap<String, Node> headerTable;
 
     public fpgrowth(HashMap<String, Integer> supportTable, List<List<String>> transactions) {
         this.supportTable = supportTable;
         this.transactions = transactions;
         this.tree = new Node(null); // Init root of tree
+        this.headerTable = new HashMap<String, Node>();
     }
 
-    public void createFpTree() {
+    public Node createFpTree() {
         Node root = fpgrowth.tree;
         // Loop over transactions elements
         for (List<String> list : transactions) {
             insertToTree(root, list);
         }
-    }
-
-    public void getFrequentPatterns(Node node, HashMap<String, Integer> suffixPath, Integer minSup) {
-        // Find bottom
-        if (node.getChildren().isEmpty()) {
-
-        }
+        return root;
     }
 
     void insertToTree(Node node, List<String> transaction) {
-        System.out.println("Current Node value " + node.getValue() + " with support " + node.getSupport());
         // Skip empty transactions
         if (transaction.size() < 1) {
             return;
@@ -43,13 +37,21 @@ public class fpgrowth {
             tempNode = new Node(head);
             tempNode.setParent(node);
             node.getChildren().put(head, tempNode);
-            System.out.println("Child Node value " + tempNode.getValue() + " with support " + tempNode.getSupport());
+            // Add to header table
+            if (headerTable.get(head) == null) {
+                headerTable.put(head, tempNode);
+            } else {
+                System.out.println("Adding node " + tempNode.getValue() + " to end of list");
+                Node next = headerTable.get(head);
+                while (next.getNexNode() != null) { // Find the last node
+                    System.out.print(next.getValue());
+                    next = next.getNexNode();
+                }
+                next.setNextNode(tempNode);
+            }
         } else {
             // Child already exists, increment the support value
             tempNode.incrementSupport();
-            System.out.println("Child Node value " + tempNode.getValue() + " with support " + tempNode.getSupport());
-            System.out.println("incremented Support to " + tempNode.getSupport());
-
         }
         // Run again recursively on the remaining items in transaction
         if (transaction.size() > 1) {
@@ -57,46 +59,19 @@ public class fpgrowth {
         }
     }
 
-    // public void viewTree() {
-    // Node root = fpgrowth.tree;
-
-    // // No more children
-    // if (root.children.keySet().size() < 1) {
-    // System.out.println("Only root");
-    // System.out.println(root.getValue());
-    // } else {
-    // for (String key : root.children.keySet()) {
-    // System.out.println("Viewing children of node " +
-    // root.children.get(key).getValue());
-    // viewTree(root.children.get(key));
-    // }
-    // }
-    // }
-
-    // public void viewTree(Node n) {
-    // if (n.children.keySet().size() < 1) {
-    // System.out.print("Node value ");
-    // System.out.println(n.getValue());
-    // } else {
-    // for (String key : n.children.keySet()) {
-    // System.out.println("Viewing children of node " +
-    // n.children.get(key).getValue());
-    // viewTree(n.children.get(key));
-    // }
-    // }
-    // }
-
-    class Node {
+    public class Node {
         private Node parent;
         private HashMap<String, Node> children;
         private String value;
         private Integer support;
+        private Node next;
 
         public Node(String value) {
             this.parent = null;
             this.value = value;
             this.support = 1;
             this.children = new HashMap<String, Node>();
+            this.next = null;
         }
 
         public void incrementSupport() {
@@ -122,6 +97,14 @@ public class fpgrowth {
 
         public Node getParent() {
             return this.parent;
+        }
+
+        public Node getNexNode() {
+            return this.next;
+        }
+
+        public void setNextNode(Node node) {
+            this.next = node;
         }
 
     }
