@@ -25,13 +25,13 @@ Will run the FP-Growth algorithm on the database file found at ./Datasets/data.t
 
 ### Example file output
 
-|FPs| = 9
-[2] : 4
-[2, 5] : 4
-[2, 3, 5] : 2
-[2, 3] : 2
-[5] : 4
-[3, 5] : 2
-[3] : 3
-[1, 3] : 2
+|FPs| = 9</br>
+[2] : 4</br>
+[2, 5] : 4</br>
+[2, 3, 5] : 2</br>
+[2, 3] : 2</br>
+[5] : 4</br>
+[3, 5] : 2</br>
+[3] : 3</br>
+[1, 3] : 2</br>
 [1] : 2
