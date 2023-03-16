@@ -1,14 +1,13 @@
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.Map.Entry;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class fpgrowth {
     private HashMap<String, Integer> supportTable;
@@ -16,7 +15,9 @@ public class fpgrowth {
     private Node tree;
     private HashMap<String, Node> headerTable;
     private Integer support;
-    private static Set<List<String>> set = new HashSet<List<String>>();
+    private static Set<List<String>> set = new HashSet<List<String>>(); // Keeps track of what itemsets have been
+                                                                        // visited
+    private List<String> patterns;
 
     public fpgrowth(HashMap<String, Integer> supportTable, List<List<String>> transactions, Integer support) {
         this.supportTable = supportTable;
@@ -24,53 +25,54 @@ public class fpgrowth {
         this.tree = new Node(null); // Init root of tree
         this.headerTable = new HashMap<String, Node>();
         this.support = support;
+        this.patterns = new ArrayList<String>();
     }
 
     public Node createFpTree() {
         Node root = this.tree;
-        // Loop over transactions elements
         for (List<String> list : transactions) {
             insertToTree(root, list);
         }
         return root;
     }
 
-    public void viewFrequentPatterns() {
-        for (Entry<String, Node> entry : headerTable.entrySet()) {
-            String item = entry.getKey();
-            Node node = entry.getValue();
-            List<String> itemset = new ArrayList<String>();
-            while (node != null) {
-                if (node.getParent() != null && node.getParent().getValue() != null) {
-                    itemset.add(node.getParent().getValue());
-                }
-                node = node.getNexNode();
+    public void writeToFile() {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter("MiningResult.txt"));
+            writer.write("|FPs| = " + patterns.size());
+            writer.newLine();
+            for (String string : this.patterns) {
+                System.out.println(string);
+                writer.write(string);
+                writer.newLine();
             }
-            if (!itemset.isEmpty()) {
-                System.out.println("[" + item + "] : " + supportTable.get(item));
-                System.out.println(itemset);
-            }
+            System.out.println("Done writing.");
+            writer.close();
+        } catch (IOException e) {
+            // TODO: handle exception
+            System.out.println("Error writing to file!");
         }
     }
 
-    public void viewFrequentPatterns2() {
+    public void createFrequentPatterns() {
         // Sort in descending order
         List<String> orderedHeaderTable = new ArrayList<String>(this.supportTable.keySet());
         Collections.sort(orderedHeaderTable, (a, b) -> this.supportTable.get(b) - this.supportTable.get(a));
 
-        // Start making itemsets for each heardertable item
+        // Start making itemsets for each table item
         for (String key : orderedHeaderTable) {
             List<String> prefix = new ArrayList<String>();
             Node current = this.headerTable.get(key);
-
+            /*
+             * (1) Follow prefix path
+             * (2) Add current node to path
+             * (3) Create the itemsets for prefix path and then visit the next node in path
+             */
             while (current != null) {
-
                 if (current.getValue() != null) {
                     prefix.add(current.getValue());
                 }
-
                 createItemsets(prefix, current);
-
                 current = current.getParent();
             }
         }
@@ -79,19 +81,22 @@ public class fpgrowth {
     void createItemsets(List<String> prefix, Node node) {
         List<String> itemset = new ArrayList<String>(prefix);
         itemset.add(node.getValue());
-        // Sort the item set to avoid duplicates with items in varying positions
+
+        // Sort the itemset to avoid duplicates with items in varying positions
         itemset.removeAll(Collections.singleton(null));
         Collections.sort(itemset);
 
         Integer tempSup = getSupport(itemset);
+
         // Strips duplicate values from itemset
         List<String> itemsetWithoutDuplicates = itemset.stream()
                 .distinct()
                 .collect(Collectors.toList());
 
+        // Only write values above support that we havent seen yet
         if (tempSup >= this.support && !set.contains(itemsetWithoutDuplicates)) {
             set.add(itemsetWithoutDuplicates);
-            System.out.println(itemsetWithoutDuplicates + " : " + tempSup);
+            this.patterns.add(itemsetWithoutDuplicates.toString() + " : " + tempSup.toString());
         }
         // Create itemsets for all child nodes
         for (Node child : node.getChildren().values()) {
